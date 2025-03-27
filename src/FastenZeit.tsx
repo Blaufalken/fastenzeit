@@ -42,6 +42,13 @@ export default function FastenZeit() {
   }, [entries]);
 
   useEffect(() => {
+    const savedStartTime = localStorage.getItem("fastenzeit-startTime");
+    const savedEndTime = localStorage.getItem("fastenzeit-endTime");
+    if (savedStartTime) setStartTime(savedStartTime);
+    if (savedEndTime) setEndTime(savedEndTime);
+  }, []);
+
+  useEffect(() => {
     const fetchEntries = async () => {
       const q = query(collection(db, "entries"), orderBy("end", "desc"));
       const querySnapshot = await getDocs(q);
@@ -82,9 +89,12 @@ export default function FastenZeit() {
   }, [startTime, endTime]);
 
   const handleStart = () => {
-    setStartTime(new Date().toISOString());
+    const now = new Date().toISOString();
+    setStartTime(now);
     setEndTime(null);
     setNotes("");
+    localStorage.setItem("fastenzeit-startTime", now);
+    localStorage.removeItem("fastenzeit-endTime");
     if (Notification.permission !== "granted") {
       Notification.requestPermission();
     }
@@ -92,15 +102,18 @@ export default function FastenZeit() {
 
   const handleEnd = async () => {
     if (startTime) {
+      const newEnd = new Date().toISOString();
       const newEntry = {
         start: startTime,
-        end: new Date().toISOString(),
+        end: newEnd,
         notes,
       };
       await addDoc(collection(db, "entries"), newEntry);
       setEntries([newEntry, ...entries]);
       setStartTime(null);
-      setEndTime(newEntry.end);
+      setEndTime(newEnd);
+      localStorage.removeItem("fastenzeit-startTime");
+      localStorage.setItem("fastenzeit-endTime", newEnd);
       setProgress(0);
       setTimer("");
     }
@@ -138,6 +151,10 @@ export default function FastenZeit() {
                 className="bg-pink-400 h-4 rounded-full transition-all"
                 style={{ width: `${progress}%` }}
               ></div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="animate-pulse text-pink-500 text-2xl">🔥</span>
+              <span>Fasten läuft...</span>
             </div>
             <textarea
               placeholder="Wie fühlst du dich gerade?"
