@@ -1,16 +1,31 @@
 import { useState, useEffect } from "react";
+import { initializeApp } from "firebase/app";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  orderBy
+} from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB7iRfWzqD5Xp_guJNfwdIB4TXH7_eE5yw",
+  authDomain: "fastenzeit-73bbc.firebaseapp.com",
+  projectId: "fastenzeit-73bbc",
+  storageBucket: "fastenzeit-73bbc.firebasestorage.app",
+  messagingSenderId: "1084381135931",
+  appId: "1:1084381135931:web:d2924ce75d326e0db7481e"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 export default function FastenZeit() {
   const [startTime, setStartTime] = useState<string | null>(null);
   const [endTime, setEndTime] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
-  const [entries, setEntries] = useState<any[]>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("fastenzeit-entries");
-      return saved ? JSON.parse(saved) : [];
-    }
-    return [];
-  });
+  const [entries, setEntries] = useState<any[]>([]);
   const [quote, setQuote] = useState("");
   const [progress, setProgress] = useState(0);
   const [timer, setTimer] = useState("");
@@ -27,8 +42,17 @@ export default function FastenZeit() {
   }, [entries]);
 
   useEffect(() => {
-    localStorage.setItem("fastenzeit-entries", JSON.stringify(entries));
-  }, [entries]);
+    const fetchEntries = async () => {
+      const q = query(collection(db, "entries"), orderBy("end", "desc"));
+      const querySnapshot = await getDocs(q);
+      const fetchedEntries: any[] = [];
+      querySnapshot.forEach((doc) => {
+        fetchedEntries.push(doc.data());
+      });
+      setEntries(fetchedEntries);
+    };
+    fetchEntries();
+  }, []);
 
   useEffect(() => {
     let interval: any;
@@ -66,13 +90,14 @@ export default function FastenZeit() {
     }
   };
 
-  const handleEnd = () => {
+  const handleEnd = async () => {
     if (startTime) {
       const newEntry = {
         start: startTime,
         end: new Date().toISOString(),
         notes,
       };
+      await addDoc(collection(db, "entries"), newEntry);
       setEntries([newEntry, ...entries]);
       setStartTime(null);
       setEndTime(newEntry.end);
