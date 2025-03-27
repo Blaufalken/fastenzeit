@@ -1,7 +1,4 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 
 export default function FastenZeit() {
   const [startTime, setStartTime] = useState<string | null>(null);
@@ -98,58 +95,61 @@ export default function FastenZeit() {
       </h1>
       <p className="text-center italic text-pink-800">{quote}</p>
 
-      <Card className="bg-white shadow-lg">
-        <CardContent className="p-4 space-y-2">
-          <p>Starte ein neues Fastenfenster:</p>
-          {!startTime ? (
-            <Button onClick={handleStart} className="bg-pink-500 hover:bg-pink-600 text-white">
-              Fasten starten
-            </Button>
-          ) : (
-            <>
-              <p>Fasten gestartet: {new Date(startTime).toLocaleString()}</p>
-              <p>Aktuelle Dauer: {timer}</p>
-              <div className="w-full bg-gray-200 rounded-full h-4">
-                <div
-                  className="bg-pink-400 h-4 rounded-full transition-all"
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-              <Textarea
-                placeholder="Wie fühlst du dich gerade?"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-              <Button onClick={handleEnd} className="bg-green-500 hover:bg-green-600 text-white">
-                Fasten beenden
-              </Button>
-            </>
-          )}
-        </CardContent>
-      </Card>
+      <div className="bg-white shadow-lg rounded-xl p-4 space-y-2">
+        <p>Starte ein neues Fastenfenster:</p>
+        {!startTime ? (
+          <button
+            onClick={handleStart}
+            className="bg-pink-500 hover:bg-pink-600 text-white font-semibold py-2 px-4 rounded"
+          >
+            Fasten starten
+          </button>
+        ) : (
+          <>
+            <p>Fasten gestartet: {new Date(startTime).toLocaleString()}</p>
+            <p>Aktuelle Dauer: {timer}</p>
+            <div className="w-full bg-gray-200 rounded-full h-4">
+              <div
+                className="bg-pink-400 h-4 rounded-full transition-all"
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+            <textarea
+              placeholder="Wie fühlst du dich gerade?"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full border border-gray-300 rounded p-2 mt-2"
+            />
+            <button
+              onClick={handleEnd}
+              className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded"
+            >
+              Fasten beenden
+            </button>
+          </>
+        )}
+      </div>
 
       <div className="space-y-2">
         <h2 className="text-xl font-semibold text-pink-700">Deine Fastenzeiten</h2>
         {entries.length === 0 && <p>Noch keine Einträge.</p>}
         {entries.map((entry, index) => (
-          <Card key={index} className="bg-white">
-            <CardContent className="p-4 space-y-1">
+          <div key={index} className="bg-white p-4 rounded shadow">
+            <p>
+              <strong>Start:</strong> {new Date(entry.start).toLocaleString()}
+            </p>
+            <p>
+              <strong>Ende:</strong> {new Date(entry.end).toLocaleString()}
+            </p>
+            <p>
+              <strong>Dauer:</strong> {getDuration(entry.start, entry.end)}
+            </p>
+            {entry.notes && (
               <p>
-                <strong>Start:</strong> {new Date(entry.start).toLocaleString()}
+                <strong>Notizen:</strong> {entry.notes}
               </p>
-              <p>
-                <strong>Ende:</strong> {new Date(entry.end).toLocaleString()}
-              </p>
-              <p>
-                <strong>Dauer:</strong> {getDuration(entry.start, entry.end)}
-              </p>
-              {entry.notes && (
-                <p>
-                  <strong>Notizen:</strong> {entry.notes}
-                </p>
-              )}
-            </CardContent>
-          </Card>
+            )}
+          </div>
         ))}
       </div>
     </div>
