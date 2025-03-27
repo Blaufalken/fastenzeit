@@ -31,22 +31,38 @@ export default function FastenZeit() {
   const [timer, setTimer] = useState("");
 
   useEffect(() => {
+    const savedStart = localStorage.getItem("fastenStartTime");
+    const savedEnd = localStorage.getItem("fastenEndTime");
+    if (savedStart) setStartTime(savedStart);
+    if (savedEnd) setEndTime(savedEnd);
+  }, []);
+
+  useEffect(() => {
+    if (startTime) {
+      localStorage.setItem("fastenStartTime", startTime);
+    } else {
+      localStorage.removeItem("fastenStartTime");
+    }
+  }, [startTime]);
+
+  useEffect(() => {
+    if (endTime) {
+      localStorage.setItem("fastenEndTime", endTime);
+    } else {
+      localStorage.removeItem("fastenEndTime");
+    }
+  }, [endTime]);
+
+  useEffect(() => {
     const quotes = [
       "Du fastest nicht nur, du befreist dich.",
       "Jede Stunde bringt dich näher zu dir selbst.",
       "Stille im Bauch, Klarheit im Kopf.",
       "Dein Körper dankt dir mit Leichtigkeit.",
-      "Dein Wille ist stärker als dein Hunger.",
+      "Dein Wille ist stärker als dein Hunger."
     ];
     setQuote(quotes[Math.floor(Math.random() * quotes.length)]);
   }, [entries]);
-
-  useEffect(() => {
-    const savedStartTime = localStorage.getItem("fastenzeit-startTime");
-    const savedEndTime = localStorage.getItem("fastenzeit-endTime");
-    if (savedStartTime) setStartTime(savedStartTime);
-    if (savedEndTime) setEndTime(savedEndTime);
-  }, []);
 
   useEffect(() => {
     const fetchEntries = async () => {
@@ -89,12 +105,10 @@ export default function FastenZeit() {
   }, [startTime, endTime]);
 
   const handleStart = () => {
-    const now = new Date().toISOString();
-    setStartTime(now);
+    const start = new Date().toISOString();
+    setStartTime(start);
     setEndTime(null);
     setNotes("");
-    localStorage.setItem("fastenzeit-startTime", now);
-    localStorage.removeItem("fastenzeit-endTime");
     if (Notification.permission !== "granted") {
       Notification.requestPermission();
     }
@@ -102,18 +116,16 @@ export default function FastenZeit() {
 
   const handleEnd = async () => {
     if (startTime) {
-      const newEnd = new Date().toISOString();
+      const end = new Date().toISOString();
       const newEntry = {
         start: startTime,
-        end: newEnd,
-        notes,
+        end,
+        notes
       };
       await addDoc(collection(db, "entries"), newEntry);
       setEntries([newEntry, ...entries]);
       setStartTime(null);
-      setEndTime(newEnd);
-      localStorage.removeItem("fastenzeit-startTime");
-      localStorage.setItem("fastenzeit-endTime", newEnd);
+      setEndTime(end);
       setProgress(0);
       setTimer("");
     }
@@ -152,10 +164,7 @@ export default function FastenZeit() {
                 style={{ width: `${progress}%` }}
               ></div>
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="animate-pulse text-pink-500 text-2xl">🔥</span>
-              <span>Fasten läuft...</span>
-            </div>
+            <p className="text-red-600 font-semibold animate-pulse">🔥 Fasten läuft...</p>
             <textarea
               placeholder="Wie fühlst du dich gerade?"
               value={notes}
@@ -197,3 +206,4 @@ export default function FastenZeit() {
     </div>
   );
 }
+
